@@ -8,7 +8,7 @@ import (
 type Actuator struct {
 	id     int
 	Name   string `json:"name"`
-	state  stateManager.Store
+	State  stateManager.Store
 	quit   chan struct{}
 	trap   chan struct{}
 	config stateManager.Config
@@ -30,7 +30,7 @@ func New(name string, script []byte, config stateManager.Config) (*Actuator, err
 
 		quit:  make(chan struct{}, 0),
 		trap:  make(chan struct{}, 0),
-		state: stateManager.Init(config),
+		State: stateManager.Init(config),
 	}, nil
 }
 

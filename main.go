@@ -40,8 +40,8 @@ func handle() http.Handler {
 	{
 		api.GET("/about", aboutHandler)
 		api.POST("/actuator/:id", actuatorCreateHandler)
-		//api.POST("/actuator/:id/trigger", sensorDataHandler)
-		//api.GET("/actuator/:id/state", sensorListHandler)
+		//api.POST("/actuator/:id/trigger", actuatorDataHandler)
+		api.GET("/actuator/:id/state", actuatorDataHandler)
 		//api.DELETE("/sensor/:id", sensorDeleteHandler)
 	}
 
@@ -50,6 +50,18 @@ func handle() http.Handler {
 	})
 
 	return r
+}
+
+func actuatorDataHandler(c *gin.Context){
+	id := c.Param("id")
+	if actuators[id] == nil{
+		c.JSON(http.StatusNotFound, gin.H{
+			"error": "Actuator not found!",
+		})
+		return
+	}
+
+	c.JSON(http.StatusOK, actuators[id].State)
 }
 
 func actuatorCreateHandler(c *gin.Context) {
