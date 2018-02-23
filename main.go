@@ -43,7 +43,7 @@ func handle() http.Handler {
 		api.POST("/actuator/:id", actuatorCreateHandler)
 		api.POST("/actuator/:id/trigger", actuatorTriggerHandler)
 		api.GET("/actuator/:id/state", actuatorDataHandler)
-		api.GET("/sensor/", actuatorListHandler)
+		api.GET("/actuator/", actuatorListHandler)
 		api.DELETE("/actuator/:id", acuatorDeleteHandler)
 	}
 
@@ -57,7 +57,6 @@ func handle() http.Handler {
 func acuatorDeleteHandler(c *gin.Context) {
 	log.Println("delete")
 	id := c.Param("id")
-	data := make([]sensor.Data, 0)
 
 	actuator, ok := actuators[id]
 	if !ok {
