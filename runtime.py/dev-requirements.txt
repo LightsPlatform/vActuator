@@ -1,0 +1,7 @@
+-r requirements.txt
+flake8
+pep8-naming
+pylint
+
+pytest
+pytest-asyncio
