@@ -44,7 +44,7 @@ func handle() http.Handler {
 		api.POST("/actuator/:id/trigger", actuatorTriggerHandler)
 		api.GET("/actuator/:id/state", actuatorDataHandler)
 		api.GET("/sensor/", actuatorListHandler)
-		//api.DELETE("/actuator/:id", sensorDeleteHandler)
+		api.DELETE("/actuator/:id", acuatorDeleteHandler)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
@@ -52,6 +52,24 @@ func handle() http.Handler {
 	})
 
 	return r
+}
+
+func acuatorDeleteHandler(c *gin.Context) {
+	log.Println("delete")
+	id := c.Param("id")
+	data := make([]sensor.Data, 0)
+
+	actuator, ok := actuators[id]
+	if !ok {
+		c.JSON(http.StatusNotFound, gin.H{"error": fmt.Sprintf("Sensor %s was not found on vSensor", id)})
+		return
+	}
+
+	actuator.Stop()
+	state := actuator.State
+	delete(actuators, id)
+
+	c.JSON(http.StatusOK, state)
 }
 
 func actuatorListHandler(c *gin.Context) {
