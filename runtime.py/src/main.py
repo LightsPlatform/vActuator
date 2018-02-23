@@ -22,10 +22,10 @@ def run(target,state):
     run given target in provided environment
     '''
     try:
-        g = runpy.run_path(target, run_name='actuator')
+        g = runpy.run_path(target, run_name='uactuator')
         for value in g.values():
-            if isinstance(value, type) and issubclass(value, actuator) and \
-                    value.__module__ == 'actuator':
+            if isinstance(value, type) and issubclass(value, Actuator) and \
+                    value.__module__ == 'uactuator':
                 actuator = value
     except Exception as e:
         print('Target Error: ', e)
