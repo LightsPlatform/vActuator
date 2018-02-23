@@ -5,7 +5,7 @@ import (
 )
 
 type State struct {
-	state map[string]string
+	State map[string]string
 }
 
 type Store struct {
@@ -13,7 +13,7 @@ type Store struct {
 }
 
 type Config struct {
-	StateType map[string][]string
+	StateType map[string][]string `json:"StateTypes"`
 }
 
 var store = Store{
@@ -28,13 +28,13 @@ func Init(config Config) Store{
 			config.StateType[index][0] == "float" ||
 			config.StateType[index][0] == "boolean" ||
 			config.StateType[index][0] == "string" {
-			if store.States[config.StateType[index][0]].state == nil {
+			if store.States[config.StateType[index][0]].State == nil {
 				store.States[config.StateType[index][0]] = State{
 					map[string]string{
 						index: config.StateType[index][1],
 					}}
 			} else {
-				store.States[config.StateType[index][0]].state[index] = config.StateType[index][1]
+				store.States[config.StateType[index][0]].State[index] = config.StateType[index][1]
 			}
 		}
 	}
@@ -54,8 +54,8 @@ func Get(key string) string {
 	return result
 }
 
-// "Set" function gets a key and a value and assigns the new value in the state
-//	if state change successfully returns true and new value otherwise returns false
+// "Set" function gets a key and a value and assigns the new value in the State
+//	if State change successfully returns true and new value otherwise returns false
 func find(key string, setValue bool, value string) (string, bool) {
 	intChan, stringChan, floatChan, boolChan :=
 		make(chan int64), make(chan string), make(chan float64), make(chan bool)
@@ -82,16 +82,16 @@ func find(key string, setValue bool, value string) (string, bool) {
 }
 
 func findInt(key string, channel chan int64, setValue bool, value string) {
-	for index := range store.States["int"].state {
+	for index := range store.States["int"].State {
 		if index == key {
 			result, e := strconv.ParseInt(value, 10, 64)
 			if e == nil && setValue {
-				store.States["int"].state[index] = value
+				store.States["int"].State[index] = value
 			} else if e != nil && setValue {
 				close(channel)
 				return
 			}
-			result, e = strconv.ParseInt(store.States["int"].state[index], 10, 64)
+			result, e = strconv.ParseInt(store.States["int"].State[index], 10, 64)
 			if e == nil {
 				channel <- result
 				close(channel)
@@ -104,12 +104,12 @@ func findInt(key string, channel chan int64, setValue bool, value string) {
 }
 
 func findString(key string, channel chan string, setValue bool, value string) bool {
-	for index := range store.States["string"].state {
+	for index := range store.States["string"].State {
 		if index == key {
 			if setValue {
-				store.States["string"].state[index] = value
+				store.States["string"].State[index] = value
 			}
-			result := store.States["string"].state[index]
+			result := store.States["string"].State[index]
 			channel <- result
 			close(channel)
 			return true
@@ -120,16 +120,16 @@ func findString(key string, channel chan string, setValue bool, value string) bo
 }
 
 func findFloat(key string, channel chan float64, setValue bool, value string) {
-	for index := range store.States["float"].state {
+	for index := range store.States["float"].State {
 		if index == key {
 			result, e := strconv.ParseFloat(value, 64)
 			if e == nil && setValue {
-				store.States["float"].state[index] = value
+				store.States["float"].State[index] = value
 			} else if e != nil && setValue {
 				close(channel)
 				return
 			}
-			result, e = strconv.ParseFloat(store.States["float"].state[index], 64)
+			result, e = strconv.ParseFloat(store.States["float"].State[index], 64)
 			if e == nil {
 				channel <- result
 				close(channel)
@@ -142,16 +142,16 @@ func findFloat(key string, channel chan float64, setValue bool, value string) {
 }
 
 func findBool(key string, channel chan bool, setValue bool, value string) {
-	for index := range store.States["bool"].state {
+	for index := range store.States["bool"].State {
 		if index == key {
 			result, e := strconv.ParseBool(value)
 			if e == nil && setValue {
-				store.States["bool"].state[index] = value
+				store.States["bool"].State[index] = value
 			} else if e != nil && setValue {
 				close(channel)
 				return
 			}
-			result, e = strconv.ParseBool(store.States["bool"].state[index])
+			result, e = strconv.ParseBool(store.States["bool"].State[index])
 			if e == nil {
 				channel <- result
 				close(channel)

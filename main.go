@@ -21,6 +21,8 @@ import (
 	"github.com/gin-gonic/gin"
 	log "github.com/sirupsen/logrus"
 	"github.com/LightsPlatform/vActuator/actuator"
+	"github.com/LightsPlatform/vActuator/stateManager"
+	"encoding/json"
 )
 
 var actuators map[string]*actuator.Actuator
@@ -37,6 +39,10 @@ func handle() http.Handler {
 	api := r.Group("/api")
 	{
 		api.GET("/about", aboutHandler)
+		api.POST("/actuator/:id", actuatorCreateHandler)
+		//api.POST("/actuator/:id/trigger", sensorDataHandler)
+		//api.GET("/actuator/:id/state", sensorListHandler)
+		//api.DELETE("/sensor/:id", sensorDeleteHandler)
 	}
 
 	r.NoRoute(func(c *gin.Context) {
@@ -44,6 +50,50 @@ func handle() http.Handler {
 	})
 
 	return r
+}
+
+func actuatorCreateHandler(c *gin.Context) {
+	id := c.Param("id")
+	code, ok := c.GetPostForm("code")
+	if ok == false {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "code must send!",
+		})
+		return
+	}
+	configData, ok := c.GetPostForm("config")
+	if ok == false {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "config must send!",
+		})
+		return
+	}
+
+	config := &stateManager.Config{
+		StateType: map[string][]string{},
+	}
+
+	error := json.Unmarshal([]byte(configData), config)
+	if error != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"error": "config is not correct! ",
+			"description" : error.Error(),
+		})
+		return
+	}
+
+	actuator, error := actuator.New(id, []byte(code), *config)
+	if error != nil {
+		c.JSON(http.StatusInternalServerError, gin.H{"error": error.Error()})
+		return
+	}
+
+	if _, ok := actuators[id]; !ok {
+		go actuator.Run()
+	}
+
+	actuators[id] = actuator
+	c.String(http.StatusOK, id)
 }
 
 func main() {
