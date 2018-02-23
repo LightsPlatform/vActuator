@@ -61,8 +61,11 @@ func actuatorTriggerHandler(c *gin.Context){
 		})
 		return
 	}
-
-	result := actuators[id].Trigger();
+	action,_ := c.GetPostForm("action")
+	if(action == ""){
+		action = "null"
+	}
+	result := actuators[id].Trigger(action);
 	c.JSON(http.StatusOK,result)
 }
 

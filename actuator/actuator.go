@@ -14,7 +14,7 @@ type Actuator struct {
 	Name   string `json:"name"`
 	State  stateManager.Store
 	quit   chan struct{}
-	trap   chan struct{}
+	trap   chan string
 	triggerResult chan bool
 	config stateManager.Config
 }
@@ -34,7 +34,7 @@ func New(name string, script []byte, config stateManager.Config) (*Actuator, err
 		config: config,
 
 		quit:  make(chan struct{}, 0),
-		trap:  make(chan struct{}, 0),
+		trap:  make(chan string,0),
 		triggerResult:  make(chan bool, 0),
 		State: stateManager.Init(config),
 	}, nil
@@ -50,8 +50,8 @@ func (a *Actuator) Stop() {
 }
 
 // Stop stops running actuator
-func (a *Actuator) Trigger() bool{
-	a.trap <- struct{}{}
+func (a *Actuator) Trigger(action string) bool{
+	a.trap <- action
 	for{
 		select {
 		case r := <-a.triggerResult:
@@ -65,7 +65,7 @@ func (a *Actuator) Run() {
 
 	for {
 		select {
-		case <-a.trap:
+		case action := <-a.trap:
 
 			path := os.TempDir() + "/actuator-%s.py"
 			b, err := json.Marshal(a.State)
@@ -74,7 +74,7 @@ func (a *Actuator) Run() {
 				a.triggerResult <- false
 				continue
 			}
-			cmd := exec.Command("runtime.py", fmt.Sprintf(path, a.Name),string(b))
+			cmd := exec.Command("runtime.py", fmt.Sprintf(path, a.Name),string(b),action)
 			// run
 			value, err := cmd.Output()
 			if err != nil {
@@ -113,8 +113,8 @@ func main() {
 		log.Println(error)
 	}
 	go actuator.Run()
-	actuator.Trigger()
-	actuator.Trigger()
+	//actuator.Trigger()
+	//actuator.Trigger()
 	//actuator.Trigger()
 	//actuator.Stop()
 }

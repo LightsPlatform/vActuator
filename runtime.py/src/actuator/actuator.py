@@ -11,5 +11,5 @@ import abc
 
 class Actuator(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def value(self, state):
+    def value(self, state,action):
         pass

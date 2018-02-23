@@ -17,7 +17,8 @@ from actuator import Actuator
 @click.command()
 @click.argument('target', type=click.Path())
 @click.argument('state')
-def run(target,state):
+@click.argument('action')
+def run(target,state,action):
     '''
     run given target in provided environment
     '''
@@ -31,7 +32,7 @@ def run(target,state):
         print('Target Error: ', e)
         return
 
-    d = actuator().value(state)
+    d = actuator().value(state,action)
     print(json.dumps(d))
 
 def main():
