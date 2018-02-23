@@ -1,4 +1,4 @@
-package main
+package actuator
 
 import (
 	"github.com/LightsPlatform/vActuator/stateManager"
