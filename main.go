@@ -23,6 +23,7 @@ import (
 	"github.com/LightsPlatform/vActuator/actuator"
 	"github.com/LightsPlatform/vActuator/stateManager"
 	"encoding/json"
+	"github.com/LightsPlatform/vSensor/sensor"
 )
 
 var actuators map[string]*actuator.Actuator
@@ -42,6 +43,7 @@ func handle() http.Handler {
 		api.POST("/actuator/:id", actuatorCreateHandler)
 		api.POST("/actuator/:id/trigger", actuatorTriggerHandler)
 		api.GET("/actuator/:id/state", actuatorDataHandler)
+		api.GET("/sensor/", actuatorListHandler)
 		//api.DELETE("/actuator/:id", sensorDeleteHandler)
 	}
 
@@ -50,6 +52,14 @@ func handle() http.Handler {
 	})
 
 	return r
+}
+
+func actuatorListHandler(c *gin.Context) {
+	output := make([]string, 0)
+	for _, actuator := range actuators {
+		output = append(output, actuator.Name)
+	}
+	c.JSON(http.StatusOK, output)
 }
 
 func actuatorTriggerHandler(c *gin.Context){
