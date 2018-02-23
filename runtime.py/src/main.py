@@ -16,7 +16,8 @@ from sensor import Sensor
 
 @click.command()
 @click.argument('target', type=click.Path())
-def run(target):
+@click.argument('state')
+def run(target,state):
     '''
     run given target in provided environment
     '''
@@ -30,7 +31,7 @@ def run(target):
         print('Target Error: ', e)
         return
 
-    d = sensor().value()
+    d = sensor().value(state)
     print(json.dumps(d))
 
 def main():

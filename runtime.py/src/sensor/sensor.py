@@ -11,5 +11,5 @@ import abc
 
 class Sensor(metaclass=abc.ABCMeta):
     @abc.abstractmethod
-    def value(self):
+    def value(self,state):
         pass

@@ -5,11 +5,11 @@ import (
 )
 
 type State struct {
-	State map[string]string
+	State map[string]string `json:"State"`
 }
 
 type Store struct {
-	States map[string]State
+	States map[string]State `json:"States"`
 }
 
 type Config struct {

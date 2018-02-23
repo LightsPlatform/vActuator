@@ -68,8 +68,13 @@ func (a *Actuator) Run() {
 		case <-a.trap:
 
 			path := os.TempDir() + "/actuator-%s.py"
-			cmd := exec.Command("runtime.py", fmt.Sprintf(path, a.Name))
-
+			b, err := json.Marshal(a.State)
+			if(err != nil){
+				log.Errorf("Can't pass args")
+				a.triggerResult <- false
+				continue
+			}
+			cmd := exec.Command("runtime.py", fmt.Sprintf(path, a.Name),string(b))
 			// run
 			value, err := cmd.Output()
 			if err != nil {
