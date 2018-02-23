@@ -11,7 +11,7 @@ import click
 import runpy
 import json
 
-from sensor import Sensor
+from actuator import Actuator
 
 
 @click.command()
@@ -22,16 +22,16 @@ def run(target,state):
     run given target in provided environment
     '''
     try:
-        g = runpy.run_path(target, run_name='usensor')
+        g = runpy.run_path(target, run_name='actuator')
         for value in g.values():
-            if isinstance(value, type) and issubclass(value, Sensor) and \
-                    value.__module__ == 'usensor':
-                sensor = value
+            if isinstance(value, type) and issubclass(value, actuator) and \
+                    value.__module__ == 'actuator':
+                actuator = value
     except Exception as e:
         print('Target Error: ', e)
         return
 
-    d = sensor().value(state)
+    d = actuator().value(state)
     print(json.dumps(d))
 
 def main():

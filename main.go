@@ -42,7 +42,7 @@ func handle() http.Handler {
 		api.POST("/actuator/:id", actuatorCreateHandler)
 		api.POST("/actuator/:id/trigger", actuatorTriggerHandler)
 		api.GET("/actuator/:id/state", actuatorDataHandler)
-		//api.DELETE("/sensor/:id", sensorDeleteHandler)
+		//api.DELETE("/actuator/:id", sensorDeleteHandler)
 	}
 
 	r.NoRoute(func(c *gin.Context) {

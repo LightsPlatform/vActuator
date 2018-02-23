@@ -1,6 +1,6 @@
 # In The Name Of God
 # ========================================
-# [] File Name : sensor/sensor.py
+# [] File Name : actuator/actuator.py
 #
 # [] Creation Date : 04-02-2018
 #
@@ -9,7 +9,7 @@
 import abc
 
 
-class Sensor(metaclass=abc.ABCMeta):
+class Actuator(metaclass=abc.ABCMeta):
     @abc.abstractmethod
     def value(self,state):
         pass
