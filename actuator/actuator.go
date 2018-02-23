@@ -2,7 +2,11 @@ package actuator
 
 import (
 	"github.com/LightsPlatform/vActuator/stateManager"
-	"log"
+	log "github.com/sirupsen/logrus"
+	"os"
+	"os/exec"
+	"fmt"
+	"encoding/json"
 )
 
 type Actuator struct {
@@ -11,18 +15,19 @@ type Actuator struct {
 	State  stateManager.Store
 	quit   chan struct{}
 	trap   chan struct{}
+	triggerResult chan bool
 	config stateManager.Config
 }
 
 // New creates new actuator and store its user given script
 func New(name string, script []byte, config stateManager.Config) (*Actuator, error) {
 	// Store user script
-	//path := os.TempDir() + "/actuator-%s.py"
-	//f, err := os.Create(fmt.Sprintf(path, name))
-	//if err != nil {
-	//	return nil, err
-	//}
-	//f.Write(script)
+	path := os.TempDir() + "/actuator-%s.py"
+	f, err := os.Create(fmt.Sprintf(path, name))
+	if err != nil {
+		return nil, err
+	}
+	f.Write(script)
 
 	return &Actuator{
 		Name:   name,
@@ -30,6 +35,7 @@ func New(name string, script []byte, config stateManager.Config) (*Actuator, err
 
 		quit:  make(chan struct{}, 0),
 		trap:  make(chan struct{}, 0),
+		triggerResult:  make(chan bool, 0),
 		State: stateManager.Init(config),
 	}, nil
 }
@@ -40,11 +46,19 @@ func (a *Actuator) Stop() {
 
 	close(a.quit)
 	close(a.trap)
+	close(a.triggerResult)
 }
 
 // Stop stops running actuator
-func (a *Actuator) trigger() {
+func (a *Actuator) Trigger() bool{
 	a.trap <- struct{}{}
+	for{
+		select {
+		case r := <-a.triggerResult:
+			return r;
+		}
+	}
+	return true
 }
 
 func (a *Actuator) Run() {
@@ -52,32 +66,30 @@ func (a *Actuator) Run() {
 	for {
 		select {
 		case <-a.trap:
-			//for i := 0; i < c; i++ {
-			//	path := os.TempDir() + "/sensor-%s.py"
-			//	cmd := exec.Command("runtime.py", fmt.Sprintf(path, s.Name))
-			//
-			//	// run
-			//	value, err := cmd.Output()
-			//	if err != nil {
-			//		if err, ok := err.(*exec.ExitError); ok {
-			//			log.Errorf("%s: %s", err.Error(), err.Stderr)
-			//			continue
-			//		}
-			//	}
-			//
-			//	d := Data{
-			//		Time: time.Now(),
-			//	}
-			//
-			//	if err := json.Unmarshal(value, &d.Value); err == nil {
-			//		log.Infoln(d)
-			//		s.Buffer <- d
-			//	} else {
-			//		log.Errorf("%s", err)
-			//	}
-			//
-			//}
+
+			path := os.TempDir() + "/actuator-%s.py"
+			cmd := exec.Command("runtime.py", fmt.Sprintf(path, a.Name))
+
+			// run
+			value, err := cmd.Output()
+			if err != nil {
+				if err, ok := err.(*exec.ExitError); ok {
+					log.Errorf("%s: %s", err.Error(), err.Stderr)
+					a.triggerResult <- false
+					continue
+				}
+			}
+
+			if err := json.Unmarshal(value, &a.State); err == nil {
+				log.Infoln(a.State)
+			} else {
+				log.Errorf("%s", err)
+				a.triggerResult <- false
+				continue
+			}
+
 			log.Println("trap")
+			a.triggerResult <- true
 		case <-a.quit:
 			log.Println("quit")
 			return
@@ -96,8 +108,8 @@ func main() {
 		log.Println(error)
 	}
 	go actuator.Run()
-	actuator.trigger()
-	actuator.trigger()
-	actuator.trigger()
-	actuator.Stop()
+	actuator.Trigger()
+	actuator.Trigger()
+	//actuator.Trigger()
+	//actuator.Stop()
 }
